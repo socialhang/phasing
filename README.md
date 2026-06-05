@@ -1,4 +1,8 @@
 # Phasing methods
+## System requirements
+python > 3.7
+## Installation
+no need
 ## Functions and Usage of the Script
 The script 01.merge_kmer_from_NGS.py is used to merge 51-mers from a large number of offspring individuals and generate a presence/absence matrix of these 51-mers across these individuals.
 ```
