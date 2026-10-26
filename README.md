@@ -1,8 +1,22 @@
 # Phasing methods
+
+This repository contains scripts and workflow documentation for genome assembly, progeny k-mer-based phasing, and variant processing in autotetraploid alfalfa.
+
+## Workflow manual
+
+| Step | Documentation | Script |
+| --- | --- | --- |
+| 1. Initial assembly | [hifiasm version, inputs, command, and parameters](docs/01-initial-assembly.md) | [01_initial_assembly.sh](scripts/01_initial_assembly.sh) |
+
 ## System requirements
-python > 3.7
+
+- Initial assembly: hifiasm **0.25.0-r726**, Bash, and a compute-node allocation suitable for 128 threads. See the [assembly guide](docs/01-initial-assembly.md).
+- The Python examples below: Python > 3.7.
+
 ## Installation
-no need
+
+Download or clone this repository. Install hifiasm separately for the initial assembly step; the repository scripts themselves do not require installation.
+
 ## Functions and Usage of the Script
 The script 01.merge_kmer_from_NGS.py is used to merge 51-mers from a large number of offspring individuals and generate a presence/absence matrix of these 51-mers across these individuals.
 ```
