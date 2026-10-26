@@ -1,0 +1,6 @@
+# The source scripts do not record exact package versions.
+# Record the installed versions with any reproduced analysis.
+numpy
+scipy
+pybedtools
+matplotlib

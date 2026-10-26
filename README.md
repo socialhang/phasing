@@ -7,10 +7,12 @@ This repository contains scripts and workflow documentation for genome assembly,
 | Step | Documentation | Script |
 | --- | --- | --- |
 | 1. Initial assembly | [hifiasm version, inputs, command, and parameters](docs/01-initial-assembly.md) | [01_initial_assembly.sh](scripts/01_initial_assembly.sh) |
+| 2. Graph-node depth evaluation | [HiFi alignment, coverage, and per-node KDE estimates](docs/02-node-depth.md) | [02_node_depth.sh](scripts/02_node_depth.sh) |
 
 ## System requirements
 
 - Initial assembly: hifiasm **0.25.0-r726**, Bash, and a compute-node allocation suitable for 128 threads. See the [assembly guide](docs/01-initial-assembly.md).
+- Node depth: GraphAligner, bedtools, Python 3 with [the helper dependencies](requirements-node-depth.txt); R with ggplot2 and ggpmisc for optional plots. See the [node-depth guide](docs/02-node-depth.md).
 - The Python examples below: Python > 3.7.
 
 ## Installation
