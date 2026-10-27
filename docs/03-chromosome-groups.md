@@ -8,8 +8,10 @@ Each group represents one chromosome type and its four homologous copies in the 
 
 1. Open the assembly GFA in Bandage v0.9.0.
 2. Inspect the graph representation and assess sequence continuity.
-3. Manually assign graph nodes to eight homologous chromosome groups.
+3. Use the chromosome assignments obtained by aligning most graph nodes to an existing reference genome as the primary evidence for manually partitioning the graph into eight homologous chromosome groups.
 4. Use the resulting group assignments as the basis for subsequent F1 progeny-based phasing within each chromosome group.
+
+The grouping was guided primarily by reference-genome alignment assignments for most nodes. The reference provides chromosome-group assignment evidence; this step does not assign the four homologous copies to separate haplotypes. Treatment of nodes with ambiguous, conflicting, or absent reference alignments has not yet been specified.
 
 These steps describe the supplied workflow at its currently documented level. No numerical grouping threshold or automatic classification rule has been supplied. Visual inspection should not be interpreted as proof that all graph connections are correct.
 
@@ -50,16 +52,17 @@ Record unresolved or shared nodes explicitly rather than assigning them by an un
 The following details remain to be added from the original manual procedure:
 
 - The exact GFA used and its relationship to the graph evaluated in Step 2.
-- The evidence used to define group boundaries and name the eight groups.
+- The reference genome name, assembly version/accession, and chromosome identifiers.
+- The alignment software, version, parameters, and criteria used to assign nodes to reference chromosomes.
 - How disconnected fragments, repeat-associated connections, and ambiguous/shared nodes were handled.
 - Whether edges or nodes were edited, removed, or duplicated during grouping, and how those actions were recorded.
 - The format of the assignments or group-specific graph files passed to the next step.
 
 ## Methods text
 
-> Subsequently, the assembly graph was visualized using Bandage (v0.9.0) to assess sequence continuity and manually partition the assembly into eight homologous chromosome groups. Each group comprised the four homologous copies of one chromosome type and was used as a separate unit for subsequent phasing with F1 progeny data. Under random chromosome segregation without double reduction or preferential pairing, the joint probability that two specified homologous chromosome copies are transmitted to the same gamete is 1/6, whereas the corresponding probability for specified copies from independently assorting chromosome groups is 1/4. Assigning graph fragments to their respective chromosome groups therefore provides a framework for interpreting progeny segregation patterns during subsequent phasing.
+> Subsequently, the assembly graph was visualized using Bandage (v0.9.0) to assess sequence continuity and manually partition the assembly into eight homologous chromosome groups, guided primarily by chromosome assignments obtained from alignments of most graph nodes to an existing reference genome. Each group comprised the four homologous copies of one chromosome type and was used as a separate unit for subsequent phasing with F1 progeny data. Under random chromosome segregation without double reduction or preferential pairing, the joint probability that two specified homologous chromosome copies are transmitted to the same gamete is 1/6, whereas the corresponding probability for specified copies from independently assorting chromosome groups is 1/4. Assigning graph fragments to their respective chromosome groups therefore provides a framework for interpreting progeny segregation patterns during subsequent phasing.
 
-This paragraph records the supplied description with explicit model assumptions. The manual assignment criteria and records listed above are needed to complete the reproducibility description.
+This paragraph records the supplied description with explicit model assumptions. The reference genome, alignment details, and handling of unresolved nodes listed above are needed to complete the reproducibility description.
 
 ## References
 
