@@ -8,6 +8,7 @@ This repository contains scripts and workflow documentation for genome assembly,
 | --- | --- | --- |
 | 1. Initial assembly | [hifiasm version, inputs, command, and parameters](docs/01-initial-assembly.md) | [01_initial_assembly.sh](scripts/01_initial_assembly.sh) |
 | 2. Graph-node depth evaluation | [HiFi alignment, coverage, and per-node KDE estimates](docs/02-node-depth.md) | [02_node_depth.sh](scripts/02_node_depth.sh) |
+| 3. Manual chromosome-group partitioning | [Bandage inspection and segregation rationale](docs/03-chromosome-groups.md) | Manual operation in Bandage; no script |
 
 ## System requirements
 
