@@ -2,35 +2,35 @@
 
 The assembly graph was visualized in **Bandage v0.9.0** to assess sequence continuity and manually partition the assembly into **eight homologous chromosome groups**. This was a manual operation; no automated partitioning script was used.
 
-Each group represents one chromosome type and its four homologous copies in the autotetraploid genome. The eight groups are the units for subsequent within-group phasing using F1 progeny data. This grouping step does not itself resolve the four haplotypes within each group.
+Each group represents one chromosome type and its four homologous copies in the autotetraploid genome. The eight groups are the units for subsequent within-group phasing using F1 progeny and Pore-C data. This grouping step does not itself resolve the four haplotypes within each group.
 
 ## Reference alignment supporting manual grouping
 
-The recorded alignment command is:
+The alignment command is:
 
 ```bash
-minimap2 -x asm5 -t 40 fll5gp.chr.p.60.fa hifiasm.asm.bp.p_utg.fa > scm.paf
+minimap2 -x asm5 -t 40 xjdy_old.fa hifiasm.asm.bp.p_utg.fa > xjdy.paf
 ```
 
 | Item | Recorded value |
 | --- | --- |
-| Reference/target FASTA | `fll5gp.chr.p.60.fa` |
+| Reference/target FASTA | `xjdy_old.fa` |
 | Query unitig FASTA | `hifiasm.asm.bp.p_utg.fa` |
 | Aligner | minimap2 |
 | Preset | `-x asm5` |
 | Threads | `-t 40` |
-| Output | `scm.paf` |
+| Output | `xjdy.paf` |
 | Original PBS allocation | `high1` queue, one node, 40 CPUs, `mem=76g` |
 
-The reference FASTA is `fll5gp.chr.p.60.fa`. The query unitig FASTA is from the `02.hifiasm_ont` assembly directory.
+The reference FASTA is `xjdy_old.fa`. The query unitig FASTA is from the `02.hifiasm_ont` assembly directory.
 
 The [portable alignment script](../scripts/03_reference_alignment.sh) preserves the original preset, thread count, and reference/query order. For example, include the following in an appropriate PBS job:
 
 ```bash
 bash /path/to/phasing/scripts/03_reference_alignment.sh \
-  /path/to/fll5gp.chr.p.60.fa \
+  /path/to/xjdy_old.fa \
   /path/to/hifiasm.asm.bp.p_utg.fa \
-  /path/to/scm.paf
+  /path/to/xjdy.paf
 ```
 
 `MINIMAP2` can specify the executable path. This command produces supporting alignments; the graph partition itself remains manual.
@@ -39,8 +39,8 @@ bash /path/to/phasing/scripts/03_reference_alignment.sh \
 
 | File | Contents or role |
 | --- | --- |
-| `scm.paf` | Alignment output specified by the original command. |
-| `scm.best.paf` | Selected alignments. |
+| `xjdy.paf` | Alignment output specified by the original command. |
+| `xjdy.best.paf` | Best alignment retained for each node. |
 | `utg2chr.txt` | Two whitespace-separated columns: unitig ID and chromosome-group label. |
 | `chr1.utgid` to `chr8.utgid` | Per-group node ID lists. |
 | `chr1.a.utgid` to `chr8.a.utgid` | Additional per-group node lists. |
@@ -58,11 +58,11 @@ python3 /path/to/phasing/scripts/chromosome_groups/add_chr.py chr1.utgid \
 
 ## Inputs and manual workflow
 
-1. Align the unitig FASTA to the reference using the recorded minimap2 command and inspect the chromosome-assignment evidence.
+1. Align the unitig FASTA to the reference using the minimap2 command, retain the best alignment for each node in `xjdy.best.paf`, and use these alignments to support chromosome-group assignment.
 2. Open the assembly GFA in Bandage v0.9.0.
 3. Inspect the graph representation and assess sequence continuity.
 4. Use the reference-alignment chromosome assignments for most nodes as the primary evidence for manually partitioning the graph into eight homologous chromosome groups.
-5. Use the resulting group assignments as the basis for subsequent F1 progeny-based phasing within each chromosome group.
+5. Use the resulting group assignments as the basis for subsequent phasing using F1 progeny and Pore-C data within each chromosome group.
 
 The grouping was guided primarily by reference-genome alignment assignments for most nodes. The reference provides chromosome-group assignment evidence; this step does not assign the four homologous copies to separate haplotypes.
 
@@ -92,7 +92,7 @@ These probabilities are theoretical expectations under the stated assumptions. T
 
 ## Methods text
 
-> Unitig sequences were aligned to the reference assembly (`fll5gp.chr.p.60.fa`) using minimap2 with the parameters `-x asm5 -t 40`. The assembly graph was subsequently visualized using Bandage (v0.9.0) to assess sequence continuity and manually partition the assembly into eight homologous chromosome groups, guided primarily by the reference-alignment chromosome assignments for most nodes. Each group comprised the four homologous copies of one chromosome type and was used as a separate unit for subsequent phasing with F1 progeny data. Under random chromosome segregation without double reduction or preferential pairing, the joint probability that two specified homologous chromosome copies are transmitted to the same gamete is 1/6, whereas the corresponding probability for specified copies from independently assorting chromosome groups is 1/4. Assigning graph fragments to their respective chromosome groups therefore provides a framework for interpreting progeny segregation patterns during subsequent phasing.
+> Unitig sequences were aligned to the reference assembly (`xjdy_old.fa`) using minimap2 with the parameters `-x asm5 -t 40`. The best alignment for each node was retained to support chromosome-group assignment. The assembly graph was subsequently visualized using Bandage (v0.9.0) to assess sequence continuity and manually partition the assembly into eight homologous chromosome groups, guided primarily by the reference-alignment chromosome assignments for most nodes. Each group comprised the four homologous copies of one chromosome type and was used as a separate unit for subsequent phasing with F1 progeny and Pore-C data. Under random chromosome segregation without double reduction or preferential pairing, the joint probability that two specified homologous chromosome copies are transmitted to the same gamete is 1/6, whereas the corresponding probability for specified copies from independently assorting chromosome groups is 1/4. Assigning graph fragments to their respective chromosome groups therefore provides a framework for interpreting progeny segregation patterns during subsequent phasing.
 
 ## References
 
