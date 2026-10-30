@@ -9,12 +9,14 @@ This repository contains scripts and workflow documentation for genome assembly,
 | 1. Initial assembly | [hifiasm version, inputs, command, and parameters](docs/01-initial-assembly.md) | [01_initial_assembly.sh](scripts/01_initial_assembly.sh) |
 | 2. Graph-node depth evaluation | [HiFi/UL alignment, coverage, and per-node KDE estimates](docs/02-node-depth.md) | [02_node_depth.sh](scripts/02_node_depth.sh) |
 | 3. Manual chromosome-group partitioning | [Reference alignment, Bandage inspection, and segregation rationale](docs/03-chromosome-groups.md) | [Reference alignment](scripts/03_reference_alignment.sh); manual grouping in Bandage |
+| 4. Progeny marker processing and unitig phasing | [51-mer inheritance vectors, 3D-DNA anchoring, and Pore-C integration](docs/04-progeny-phasing.md) | [04_progeny_kmers.sh](scripts/04_progeny_kmers.sh) |
 
 ## System requirements
 
 - Initial assembly: hifiasm **0.25.0-r726**, Bash, and a compute-node allocation suitable for 128 threads. See the [assembly guide](docs/01-initial-assembly.md).
 - Node depth: GraphAligner, bedtools, Python 3 with [the helper dependencies](requirements-node-depth.txt); R with ggplot2 and ggpmisc for optional plots. See the [node-depth guide](docs/02-node-depth.md).
 - Chromosome grouping: minimap2 for reference alignment and Bandage **v0.9.0** for manual graph inspection; Python 3 for the optional node-list helper.
+- Progeny phasing: FASTK **v1.2**, 3D-DNA **201008**, NumPy/SciPy, and the tools listed in the [Step 4 guide](docs/04-progeny-phasing.md).
 - The Python examples below: Python > 3.7.
 
 ## Installation
