@@ -10,6 +10,7 @@ This repository contains scripts and workflow documentation for genome assembly,
 | 2. Graph-node depth evaluation | [HiFi/UL alignment, coverage, and per-node KDE estimates](docs/02-node-depth.md) | [02_node_depth.sh](scripts/02_node_depth.sh) |
 | 3. Manual chromosome-group partitioning | [Reference alignment, Bandage inspection, and segregation rationale](docs/03-chromosome-groups.md) | [Reference alignment](scripts/03_reference_alignment.sh); manual grouping in Bandage |
 | 4. Progeny marker processing and S1 anchoring | [51-mer inheritance vectors and 3D-DNA anchoring](docs/04-progeny-phasing.md) | [04_progeny_kmers.sh](scripts/04_progeny_kmers.sh) |
+| 5. Pore-C data analysis | [C-phasing mapping, partitioning, scaffolding, and heatmaps](docs/05-porec-phasing.md) | [05_porec_phasing.sh](scripts/05_porec_phasing.sh) |
 
 ## System requirements
 
