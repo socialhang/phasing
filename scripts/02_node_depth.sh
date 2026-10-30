@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # Run each stage in a PBS job or on an allocated compute node.
-# Usage: bash 02_node_depth.sh {map|convert|coverage|kde} WORK_DIR HIFI_READS_LIST
-# The list contains one HiFi FASTQ path per line, relative to WORK_DIR or absolute.
+# Use separate working directories for HiFi and UL; output names use the hifi example prefix.
+# Usage: bash 02_node_depth.sh {map|convert|coverage|kde} WORK_DIR READS_LIST
+# The list contains one HiFi or UL FASTQ path per line, relative to WORK_DIR or absolute.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 STAGE="${1:?Specify map, convert, coverage, or kde}"
 WORK_DIR="${2:?Specify the working directory}"
-MANIFEST="${3:?Specify a HiFi read list}"
+MANIFEST="${3:?Specify a HiFi or UL read list}"
 GFA="${GFA:-hifiasm.asm.bp.p_utg.gfa}"
 FAI="${FAI:-hifiasm.asm.bp.p_utg.fa.fai}"
 THREADS="${THREADS:-40}"
@@ -20,7 +21,7 @@ while IFS= read -r read_file || [[ -n "$read_file" ]]; do
   [[ -z "$read_file" || "$read_file" == \#* ]] && continue
   READS+=("$read_file")
 done < "$MANIFEST"
-[[ ${#READS[@]} -gt 0 ]] || { printf 'The HiFi read list is empty.\n' >&2; exit 1; }
+[[ ${#READS[@]} -gt 0 ]] || { printf 'The read list is empty.\n' >&2; exit 1; }
 
 case "$STAGE" in
   map)
