@@ -37,10 +37,6 @@ Exact software/package versions are not specified in the recovered scripts. They
 - `hifiasm.asm.bp.p_utg.fa.fai`: a matching unitig FASTA index, providing node names and lengths to bedtools.
 - `SCM.hifi.part_001.fq.gz.20k.fq.gz` through `SCM.hifi.part_020.fq.gz.20k.fq.gz`: the 20 HiFi FASTQ parts named in the source conversion script. The [read manifest](../examples/node_depth/hifi_reads.list) lists them explicitly.
 
-Use the graph and index from the same assembly, with matching node identifiers and lengths. The graph stored in the original depth directory was linked from a separate assembly location; confirm graph identity when connecting this step to an upstream run. Filenames alone do not establish the upstream filtering or sampling method.
-
-The original mapping list also included `SCM.pass.all2.fq.gz` and `SCM.pass.all.fq.gz`. The subsequent GAF-to-node conversion list contains only the 20 HiFi parts, so the depth workflow below uses those HiFi files. The two ONT inputs are not merged into this HiFi-depth estimate.
-
 ## 1 Align HiFi reads to the graph
 
 The recorded command for each FASTQ part is:
