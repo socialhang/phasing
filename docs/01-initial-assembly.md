@@ -4,14 +4,14 @@ This step documents the initial hifiasm assembly command, its input files, and i
 
 ## Software and assembly mode
 
-- **Assembler:** hifiasm **0.25.0-r726**, verified using the executable's `--version` output.
+- **Assembler:** hifiasm **0.25.0-r726**.
 - **Long-read mode:** the ONT simplex assembly preset, selected with `--ont`.
 - **Paired-read input:** two pairs of files supplied through the Hi-C input options `--h1` and `--h2`.
 - **Threads:** 128.
 
-In this recorded invocation, all long-read FASTQ files are positional inputs under the `--ont` preset. The separate ultra-long integration option `--ul` is unused. Input filenames are retained from the original command; their names alone do not establish sequencing technology or upstream filtering criteria.
+The long-read datasets, including the HiFi reads in `all.filtered.fq.gz`, are supplied as positional FASTQ inputs with the `--ont` preset.
 
-Parameter meanings below were checked against the help output of the same executable. Unspecified settings follow that version and its selected preset.
+Other settings use the defaults of hifiasm 0.25.0-r726 and the selected preset.
 
 ## Input files
 
@@ -24,7 +24,7 @@ Place the following files in the assembly working directory, or provide links to
 | Positional long-read input 1 | `round2.fq.gz` |
 | Positional long-read input 2 | `ul10.pass.fq.gz` |
 | Positional long-read inputs 3–11 | `ul1.pass.fq.gz` through `ul9.pass.fq.gz`, in numerical order |
-| Positional long-read input 12 | `all.filtered.fq.gz` |
+| HiFi input | `all.filtered.fq.gz` |
 
 Within the two comma-separated Hi-C lists, keep corresponding R1 and R2 files in the same dataset order. FASTQ inputs are gzip-compressed in the recorded command.
 
@@ -71,8 +71,6 @@ hifiasm \
 | `--dual-scaf` | Enabled | Output scaffolding. |
 | `--telo-m` | `CCCTAAA` | Set the 5′-end telomere-identification motif. |
 
-The haplotype-count setting specifies an assembler parameter; completeness and phasing accuracy require evaluation of the resulting assembly. The telomere option specifies a recognition motif and does not itself establish a telomere-to-telomere result.
-
 ## Using the repository script
 
 Run the script inside a PBS job or on a compute node with an appropriate allocation. The command requests 128 threads; request matching CPU resources and choose memory and walltime appropriate to the dataset and cluster policy.
@@ -86,15 +84,15 @@ HIFIASM=/path/to/hifiasm-0.25.0/hifiasm \
   2> /path/to/assembly_inputs/assembly.stderr.log
 ```
 
-The wrapper changes into the supplied working directory and invokes hifiasm with the recorded parameters. If `HIFIASM` is omitted, it uses `hifiasm` from `PATH`. The two log redirections are a reproducibility convenience in this example; the original command did not specify redirection.
+The wrapper changes into the supplied working directory and invokes hifiasm with the recorded parameters. If `HIFIASM` is omitted, it uses `hifiasm` from `PATH`. Standard output and standard error are saved to separate log files in this example.
 
-## Outputs and records to retain
+## Outputs
 
 The original command does not set `-o`, so the verified executable's default output prefix is **`hifiasm.asm`**. Outputs are written relative to the assembly working directory.
 
-Retain the generated GFA files, standard output/error logs, the exact invocation, and scheduler resource records. Also record the input datasets and their upstream processing. A specific GFA should be identified explicitly when passing the assembly into a downstream graph-processing or phasing step.
+The assembly GFA provides the input for downstream graph processing and phasing. The accompanying log files record the assembly run.
 
-This page covers the initial assembly invocation. Subsequent graph pruning, collapsed-node handling, and progeny-based phasing need their own commands and parameter records.
+Node-depth evaluation and chromosome-group partitioning are described in [Step 2](02-node-depth.md) and [Step 3](03-chromosome-groups.md).
 
 ## Software documentation
 
