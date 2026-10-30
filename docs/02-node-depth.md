@@ -2,7 +2,7 @@
 
 This step estimates HiFi read depth for each unitig in the assembly graph. Reads are aligned to the graph, graph-path alignments are projected onto unitig intervals, and bedtools produces coverage intervals. A custom script summarizes coverage in 100 bp windows and reports a kernel-density mode and a mean for each covered unitig.
 
-The commands and helper implementations were recovered from the original depth-analysis directory. The repository [workflow wrapper](../scripts/02_node_depth.sh) provides portable paths and explicit input selection. It does not change the Python helpers' analysis logic.
+The [workflow script](../scripts/02_node_depth.sh) runs the alignment, interval conversion, coverage calculation, and per-node depth summarization stages.
 
 ## Workflow
 
@@ -29,7 +29,7 @@ flowchart LR
 | Python 3, NumPy, SciPy, matplotlib | Run [get_KDE_Mode_v2.py](../scripts/node_depth/get_KDE_Mode_v2.py); matplotlib is imported by the source script. |
 | R, ggplot2, ggpmisc | Optional [depth-distribution plot](../scripts/node_depth/plot_depth_distribution.R). |
 
-Exact software/package versions are not specified in the recovered scripts. They are therefore not assigned invented version numbers here. Record the versions and environment used when reproducing this analysis. The Python dependencies are listed in [requirements-node-depth.txt](../requirements-node-depth.txt).
+The Python dependencies are listed in [requirements-node-depth.txt](../requirements-node-depth.txt).
 
 ## Inputs and dataset selection
 
@@ -47,9 +47,9 @@ GraphAligner -t40 -g hifiasm.asm.bp.p_utg.gfa \
   -a SCM.hifi.part_001.fq.gz.20k.fq.gz.gaf -x vg
 ```
 
-Repeat for the 20 files. The explicit mapping settings are **40 threads** and the **`vg` preset**. The recovered command does not add a mapping-quality or sequence-identity threshold.
+Repeat for the 20 files. The explicit mapping settings are **40 threads** and the **`vg` preset**. Additional mapping-quality and sequence-identity filters are not applied.
 
-The wrapper processes the listed parts sequentially. The original cluster submission scripts submitted separate jobs; this scheduling difference does not change the per-file mapping command.
+The workflow script processes the listed parts sequentially using the same mapping parameters for each part.
 
 ## 2 Convert GAF paths to unitig intervals
 
@@ -60,7 +60,7 @@ python3 /path/to/phasing/scripts/node_depth/gaf2paf.py \
   > SCM.hifi.part_001.fq.gz.20k.fq.gz.gaf.bed
 ```
 
-Despite its historical filename, this helper emits six columns rather than a standard PAF record:
+The conversion helper emits six columns:
 
 ```text
 read_id  read_length  unitig_id  unitig_start  unitig_end  unitig_orientation
@@ -77,9 +77,9 @@ It reads segment lengths and directed link overlaps from the GFA, splits each al
 | Read grouping | State is reset whenever the read identifier changes; records for a read must be consecutive. |
 | Additional quality filter | No explicit MAPQ or alignment-identity filter in the converter. |
 
-The additional-alignment expression divides a **bin count** by a read length in **bases**. It must not be described as a conventional 5% base-pair overlap filter. The original arithmetic is retained in the published helper.
+In the additional-alignment expression, `len(overlapping_bins)` is the count of overlapping 100 bp query bins, and `read_length` is measured in bases.
 
-The converter also assumes hifiasm-style node names matching `utg[0-9]+[lc]`, segment records with the expected length tag/field layout, and simple integer link overlaps. Its legacy coordinate arithmetic, including `+1` transformations for reverse-oriented nodes and multi-node offset handling, is preserved. Coordinate conventions should be validated before substituting a different GFA producer or interval-conversion implementation.
+The converter reads hifiasm node identifiers matching `utg[0-9]+[lc]`, segment-length tags, and integer link overlaps. It converts path positions to node intervals using node lengths, link overlaps, and orientation-specific coordinate transformations.
 
 ## 3 Merge intervals and calculate coverage
 
@@ -103,7 +103,7 @@ gzip -c hifi.base.depth > hifi.base.depth.gz
 unitig_id  interval_start  interval_end  depth
 ```
 
-The gzip command supplies the compressed input expected by the next helper; compression was not included in the recovered `down_work.sh`.
+The gzip command compresses the coverage intervals for the per-node depth calculation.
 
 ## 4 Estimate depth for each node
 
@@ -135,7 +135,7 @@ The output is tab-separated, without a header:
 | 2 | KDE depth mode, or the window mean when the fallback applies. |
 | 3 | Arithmetic mean of the represented window-depth values. |
 
-Column 3 is a mean of window statistics, with a partial window receiving the same weight as a full one. Because zero-depth bases are excluded, it is not a mean over all bases in a node. Nodes with no positive-depth bases are absent from the output. Keep these definitions when interpreting low-coverage nodes or deriving later copy-number thresholds.
+Column 3 is a mean of window statistics, with a partial window receiving the same weight as a full one. Because zero-depth bases are excluded, it is not a mean over all bases in a node. Nodes with no positive-depth bases are absent from the output.
 
 ## Repository wrapper
 
@@ -162,7 +162,7 @@ awk '{print $2}' hifi.last.depth > node_mode_values.txt
 Rscript /path/to/phasing/scripts/node_depth/plot_depth_distribution.R node_mode_values.txt
 ```
 
-This example plots one mode estimate per reported node. It does not claim to reproduce the sampling used for historical figures. The repository plotting copy removes machine-specific interpreter and R library paths; the plotting expressions are retained.
+This example plots one mode estimate per reported node.
 
 ## Outputs
 
