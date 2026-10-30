@@ -6,7 +6,7 @@ set -euo pipefail
 
 REFERENCE="${1:?Specify the reference FASTA}"
 UNITIGS="${2:?Specify the unitig FASTA}"
-OUTPUT="${3:-scm.paf}"
+OUTPUT="${3:-xjdy.paf}"
 MINIMAP2="${MINIMAP2:-minimap2}"
 
 "$MINIMAP2" -x asm5 -t 40 "$REFERENCE" "$UNITIGS" > "$OUTPUT"
