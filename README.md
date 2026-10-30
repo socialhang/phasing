@@ -1,13 +1,13 @@
 # Phasing methods
 
-This repository contains scripts and workflow documentation for genome assembly, progeny k-mer-based phasing, and variant processing in autotetraploid alfalfa.
+This repository contains scripts and workflow documentation for genome assembly, phasing using progeny k-mers and Pore-C data, and variant processing in autotetraploid alfalfa.
 
 ## Workflow manual
 
 | Step | Documentation | Script |
 | --- | --- | --- |
 | 1. Initial assembly | [hifiasm version, inputs, command, and parameters](docs/01-initial-assembly.md) | [01_initial_assembly.sh](scripts/01_initial_assembly.sh) |
-| 2. Graph-node depth evaluation | [HiFi alignment, coverage, and per-node KDE estimates](docs/02-node-depth.md) | [02_node_depth.sh](scripts/02_node_depth.sh) |
+| 2. Graph-node depth evaluation | [HiFi/UL alignment, coverage, and per-node KDE estimates](docs/02-node-depth.md) | [02_node_depth.sh](scripts/02_node_depth.sh) |
 | 3. Manual chromosome-group partitioning | [Reference alignment, Bandage inspection, and segregation rationale](docs/03-chromosome-groups.md) | [Reference alignment](scripts/03_reference_alignment.sh); manual grouping in Bandage |
 
 ## System requirements
