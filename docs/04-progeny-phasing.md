@@ -1,6 +1,6 @@
-# Step 4 Progeny marker processing and unitig phasing
+# Step 4 Progeny marker processing and S1 anchoring
 
-Unique 51-mers from the XJDYt2t and Adina parental assemblies provide markers for tracing inheritance in the 100 F1 progeny. Each marker is represented by a binary presence/absence vector across the progeny. Correlation between vectors provides co-segregation evidence for unitig phasing within the eight chromosome groups defined in [Step 3](03-chromosome-groups.md). Pore-C supplies complementary long-range phasing information.
+Unique 51-mers from the XJDYt2t and Adina parental assemblies provide markers for tracing inheritance in the 100 F1 progeny. Each marker is represented by a binary presence/absence vector across the progeny. Correlation between vectors provides co-segregation evidence for unitig phasing within the eight chromosome groups defined in [Step 3](03-chromosome-groups.md).
 
 ## Workflow
 
@@ -17,9 +17,6 @@ flowchart TD
     H --> I[Pairwise correlation and pseudo-contact records]
     I --> J[Chromosome-group restriction]
     J --> K[3D-DNA: within-group clustering and ordering]
-    L[Pore-C and C-phasing] --> M[Integrated four-haplotype assignment]
-    K --> M
-    M --> N[Pore-C contact-map and F1 genetic-map validation]
 ```
 
 ## Software and scripts
@@ -31,8 +28,6 @@ flowchart TD
 | bedtools, samtools, seqkit | Windows, FASTA indexing, and group-specific FASTA extraction. |
 | pigz | Compress per-individual marker lists. |
 | 3D-DNA | Release 201008; iterative graph-based clustering and ordering. |
-| C-phasing | Pore-C-based unitig phasing. |
-| GraphAligner | v1.0.20; UL alignment for node-depth evaluation. |
 
 The [workflow script](../scripts/04_progeny_kmers.sh) organizes the commands into `parent`, `sample`, `merge`, `markers`, `contacts`, and `anchor` stages. Compute-intensive stages are submitted through PBS. Example filenames denote input roles rather than specific sequencing batches.
 
@@ -159,23 +154,7 @@ THREEDDNA=/path/to/3d-dna-201008 \
   chr1 chr1.utgid progeny.3ddna.txt unitigs.fa
 ```
 
-The resulting within-group clusters are assigned to the four haplotypes using the co-segregation results together with complementary Pore-C evidence.
-
-## 7 Integrate Pore-C and validate unitig assignments
-
-In parallel, phase unitigs using Pore-C data with C-phasing. Prioritize the assignments supported by unique-k-mer inheritance vectors, whose low cross-talk between homologous chromosomes provides discriminative segregation evidence. Use the long-range Pore-C signal to assign unitigs lacking informative k-mer coverage and to complement the progeny-based assignments.
-
-Review the integrated assignments using both Pore-C contact maps and the F1 genetic map to check for chimeric unitigs and consistency of haplotype grouping. Apply the same strategy to XJDYt2t and Adina.
-
-## 8 Identify collapsed unitigs from UL depth
-
-Align ONT UL reads to the graph using GraphAligner v1.0.20 and calculate per-node depth using the workflow in [Step 2](02-node-depth.md). Define:
-
-```text
-depth ratio = unitig UL-alignment depth / whole-genome coverage-distribution peak depth
-```
-
-Classify unitigs with a depth ratio **greater than 1.5** as collapsed. Use the peak derived from the same UL coverage dataset as the unitig depths. The per-node KDE depth estimate and the whole-genome distribution peak are distinct summary quantities.
+The within-group clustering and ordering results provide the progeny-based unitig assignments for each chromosome group.
 
 ## Output summary
 
@@ -193,11 +172,9 @@ Retain the FastK table stub and its associated hidden `.ktab.*` files together. 
 
 ## Methods text
 
-> Unique canonical 51-mers were identified from the parental assembly sequences of XJDYt2t and Adina using FASTK (v1.2) and localized to their corresponding parental sequences. F1 progeny WGS reads were processed with the same k-mer length. For each individual, counts from the paired-read files were summed, and a marker was considered present when its combined count exceeded two. Logex was used for count filtering and intersection with the parental unique-marker catalog, and Tabex exports were integrated into binary inheritance vectors across the 100 progeny. To distribute markers along the assembly, one eligible marker was sampled per 10-kb window after carrier-count filtering. Pairwise Pearson-equivalent correlations between binary vectors were converted into co-segregation pseudo-contacts and supplied to 3D-DNA (release 201008) for iterative clustering and ordering within each homologous chromosome group, using `-r 1 -i 100`. In parallel, unitigs were phased with Pore-C data using C-phasing. Assignments supported by the k-mer inheritance vectors were prioritized, and Pore-C information was used to complement these assignments for unitigs lacking informative k-mer coverage. The integrated results were examined using Pore-C contact maps and the F1 genetic map to verify the absence of chimeric unitigs. ONT UL reads were aligned to the graph using GraphAligner (v1.0.20), and unitigs with an alignment-depth-to-whole-genome-peak ratio greater than 1.5 were classified as collapsed.
+> Unique canonical 51-mers were identified from the parental assembly sequences of XJDYt2t and Adina using FASTK (v1.2) and localized to their corresponding parental sequences. F1 progeny WGS reads were processed with the same k-mer length. For each individual, counts from the paired-read files were summed, and a marker was considered present when its combined count exceeded two. Logex was used for count filtering and intersection with the parental unique-marker catalog, and Tabex exports were integrated into binary inheritance vectors across the 100 progeny. To distribute markers along the assembly, one eligible marker was sampled per 10-kb window after carrier-count filtering. Pairwise Pearson-equivalent correlations between binary vectors were converted into co-segregation pseudo-contacts and supplied to 3D-DNA (release 201008) for iterative clustering and ordering within each homologous chromosome group, using `-r 1 -i 100`.
 
 ## References
 
 - [FASTK, Logex, and Tabex](https://github.com/thegenemyers/FASTK)
 - [3D-DNA release 201008](https://github.com/aidenlab/3d-dna/tree/201008)
-- [C-phasing](https://github.com/wangyibin/CPhasing)
-- [GraphAligner](https://github.com/maickrau/GraphAligner)
