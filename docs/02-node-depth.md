@@ -1,6 +1,6 @@
 # Step 2 Graph-node depth evaluation
 
-This step estimates HiFi read depth for each unitig in the assembly graph. Reads are aligned to the graph, graph-path alignments are projected onto unitig intervals, and bedtools produces coverage intervals. A custom script summarizes coverage in 100 bp windows and reports a kernel-density mode and a mean for each covered unitig.
+This step estimates HiFi and ultra-long (UL) read depth for each unitig in the assembly graph. Both read types are processed using the same workflow; the commands below use HiFi reads as an example. Process HiFi and UL datasets separately in their respective working directories. Reads are aligned to the graph, graph-path alignments are projected onto unitig intervals, and bedtools produces coverage intervals. A custom script summarizes coverage in 100 bp windows and reports a kernel-density mode and a mean for each covered unitig.
 
 The [workflow script](../scripts/02_node_depth.sh) runs the alignment, interval conversion, coverage calculation, and per-node depth summarization stages.
 
@@ -8,7 +8,7 @@ The [workflow script](../scripts/02_node_depth.sh) runs the alignment, interval 
 
 ```mermaid
 flowchart LR
-    A[20 HiFi FASTQ parts] --> C[GraphAligner: 40 threads, vg preset]
+    A[HiFi or UL FASTQ reads] --> C[GraphAligner: 40 threads, vg preset]
     B[Unitig GFA] --> C
     C --> D[GAF alignments]
     D --> E[Project paths onto unitig intervals]
@@ -35,19 +35,19 @@ The Python dependencies are listed in [requirements-node-depth.txt](../requireme
 
 - `hifiasm.asm.bp.p_utg.gfa`: the unitig graph being evaluated.
 - `hifiasm.asm.bp.p_utg.fa.fai`: a matching unitig FASTA index, providing node names and lengths to bedtools.
-- `SCM.hifi.part_001.fq.gz.20k.fq.gz` through `SCM.hifi.part_020.fq.gz.20k.fq.gz`: the 20 HiFi FASTQ parts named in the source conversion script. The [read manifest](../examples/node_depth/hifi_reads.list) lists them explicitly.
+- `hifi_reads.fq.gz`: the HiFi FASTQ input used as the example throughout this page. Substitute `ul_reads.fq.gz` when evaluating UL depth. For split datasets, list one FASTQ path per line in the [example manifest](../examples/node_depth/hifi_reads.list).
 
-## 1 Align HiFi reads to the graph
+## 1 Align reads to the graph
 
-The recorded command for each FASTQ part is:
+The alignment command for each FASTQ input is:
 
 ```bash
 GraphAligner -t40 -g hifiasm.asm.bp.p_utg.gfa \
-  -f SCM.hifi.part_001.fq.gz.20k.fq.gz \
-  -a SCM.hifi.part_001.fq.gz.20k.fq.gz.gaf -x vg
+  -f hifi_reads.fq.gz \
+  -a hifi_reads.fq.gz.gaf -x vg
 ```
 
-Repeat for the 20 files. The explicit mapping settings are **40 threads** and the **`vg` preset**. Additional mapping-quality and sequence-identity filters are not applied.
+Run the command for each FASTQ file in the selected dataset. The explicit mapping settings are **40 threads** and the **`vg` preset**. Additional mapping-quality and sequence-identity filters are not applied.
 
 The workflow script processes the listed parts sequentially using the same mapping parameters for each part.
 
@@ -56,8 +56,8 @@ The workflow script processes the listed parts sequentially using the same mappi
 ```bash
 python3 /path/to/phasing/scripts/node_depth/gaf2paf.py \
   hifiasm.asm.bp.p_utg.gfa \
-  SCM.hifi.part_001.fq.gz.20k.fq.gz.gaf \
-  > SCM.hifi.part_001.fq.gz.20k.fq.gz.gaf.bed
+  hifi_reads.fq.gz.gaf \
+  > hifi_reads.fq.gz.gaf.bed
 ```
 
 The conversion helper emits six columns:
@@ -83,7 +83,7 @@ The converter reads hifiasm node identifiers matching `utg[0-9]+[lc]`, segment-l
 
 ## 3 Merge intervals and calculate coverage
 
-Merge only the per-part HiFi conversion outputs. The wrapper uses the explicit manifest instead of the original broad `cat *bed` wildcard, so an existing merged BED is not added again on a repeated run.
+Merge the conversion outputs for the dataset being evaluated. The wrapper uses the explicit manifest instead of the original broad `cat *bed` wildcard, so an existing merged BED is not added again on a repeated run.
 
 The recorded column transformation and coverage command are:
 
@@ -139,7 +139,7 @@ Column 3 is a mean of window statistics, with a partial window receiving the sam
 
 ## Repository wrapper
 
-Copy the [HiFi manifest](../examples/node_depth/hifi_reads.list) into your working directory and make its paths match your files. Submit each stage through PBS with suitable CPU, memory, and walltime allocations. For the mapping stage, allocate 40 threads for the default command.
+Copy the [example read manifest](../examples/node_depth/hifi_reads.list) into your working directory and make its paths match your files. Submit each stage through PBS with suitable CPU, memory, and walltime allocations. For the mapping stage, allocate 40 threads for the default command.
 
 ```bash
 # Run each command in an appropriate PBS job, in this order.
@@ -149,7 +149,9 @@ bash /path/to/phasing/scripts/02_node_depth.sh coverage /path/to/work /path/to/w
 bash /path/to/phasing/scripts/02_node_depth.sh kde      /path/to/work /path/to/work/hifi_reads.list
 ```
 
-`GFA`, `FAI`, `PYTHON`, and `THREADS` can be supplied as environment variables. Their defaults reproduce the filenames, interpreter choice, and thread count shown above. The original KDE helper iterates over covered bases and retains window summaries in memory, so submit it as a compute job for a large graph.
+`GFA`, `FAI`, `PYTHON`, and `THREADS` can be supplied as environment variables. Their defaults use the filenames, interpreter choice, and thread count shown above. The original KDE helper iterates over covered bases and retains window summaries in memory, so submit it as a compute job for a large graph.
+
+For UL reads, supply a manifest containing the UL FASTQ paths and run the same four stages in a separate working directory. The wrapper uses the `hifi.*` example output names for either dataset; keeping separate working directories retains the two depth estimates independently.
 
 ## Optional distribution plot
 
@@ -168,9 +170,9 @@ This example plots one mode estimate per reported node.
 
 | Output | Contents |
 | --- | --- |
-| `<HiFi_part>.gaf` | GraphAligner alignments for each HiFi part. |
-| `<HiFi_part>.gaf.bed` | Six-column read-to-node intervals from the custom converter. |
-| `hifi.raw.bed` | Concatenated HiFi interval records. |
+| `<reads>.gaf` | GraphAligner alignments for each FASTQ input. |
+| `<reads>.gaf.bed` | Six-column read-to-node intervals from the custom converter. |
+| `hifi.raw.bed` | Concatenated interval records for the selected dataset. |
 | `hifi.bed` | Reordered and sorted node intervals. |
 | `hifi.base.depth.gz` | Compressed coverage intervals. |
 | `hifi.last.depth` | Node ID, KDE mode/fallback, and window mean. |
