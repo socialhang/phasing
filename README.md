@@ -12,6 +12,7 @@ This repository contains scripts and workflow documentation for genome assembly,
 | 4. Progeny marker processing and S1 anchoring | [51-mer inheritance vectors and 3D-DNA anchoring](docs/04-progeny-phasing.md) | [04_progeny_kmers.sh](scripts/04_progeny_kmers.sh) |
 | 5. Pore-C data analysis | [C-phasing mapping, partitioning, scaffolding, and heatmaps](docs/05-porec-phasing.md) | [05_porec_phasing.sh](scripts/05_porec_phasing.sh) |
 | 6. Graph resolution | [Collapsed-node duplication, edge pruning, artifact removal, and sequence merging](docs/06-graph-resolution.md) | Manual operations in Bandage |
+| 7. Haplotype-specific gap filling | [Unique 51-mer anchors, UL reads, and four gap closures](docs/07-gap-filling.md) | [07_gap_filling.sh](scripts/07_gap_filling.sh) and reviewed fragment plans |
 
 ## System requirements
 
