@@ -25,21 +25,21 @@ flowchart TD
 
 | Item | Value |
 | --- | --- |
-| Assembly FASTA | `xjdy_old.fa` |
+| Assembly FASTA | `xjdy_unitigs.fa` |
 | Pore-C reads | `porec_all.fq.gz`, gzip-compressed FASTQ |
 | C-phasing | Source version marker `0.2.1.r283` |
 | minimap2 | `2.28-r1209`, recorded in the mapping log |
 | Threads | 100 |
 | Grouping structure | Eight homologous chromosome groups, four haplotypes per group |
 
-`xjdy_old.fa` is the standardized filename used throughout the example commands. Sequence identifiers must remain consistent between the FASTA, contact files, group assignments, and AGP.
+`xjdy_unitigs.fa` is the standardized filename used throughout the example commands. Sequence identifiers must remain consistent between the FASTA, contact files, group assignments, and AGP.
 
 ## 1 Run the pipeline
 
 Activate the C-phasing environment and make its executable and dependencies available on `PATH`. Submit the following command through PBS with a suitable allocation for 100 threads:
 
 ```bash
-cphasing pipeline -f xjdy_old.fa -pcd porec_all.fq.gz -t 100 -n 8:4
+cphasing pipeline -f xjdy_unitigs.fa -pcd porec_all.fq.gz -t 100 -n 8:4
 ```
 
 | Option | Meaning |
@@ -53,7 +53,7 @@ The [repository wrapper](../scripts/05_porec_phasing.sh) preserves these setting
 
 ```bash
 bash /path/to/phasing/scripts/05_porec_phasing.sh \
-  /path/to/xjdy_old.fa /path/to/porec_all.fq.gz /path/to/porec_work
+  /path/to/xjdy_unitigs.fa /path/to/porec_all.fq.gz /path/to/porec_work
 ```
 
 The pipeline writes its results under `cphasing_output/`. The stages below document the generated commands and their parameter values. The stage scripts can be inspected individually; run them from their corresponding stage directories when reproducing a particular stage.
@@ -64,7 +64,7 @@ The mapping log records this minimap2 invocation:
 
 ```bash
 minimap2 -t 100 -k 15 -w 10 -c --secondary=no -I 4g -x map-ont \
-  xjdy_old.fa porec_all.fq.gz
+  xjdy_unitigs.fa porec_all.fq.gz
 ```
 
 The pipeline saves compressed PAF alignments as `porec_all.paf.gz`. Mapping uses the ONT preset, 15-base minimizers, a minimizer window size of 10, CIGAR output, disabled secondary alignments, and a 4G-base index batch size.
@@ -76,17 +76,17 @@ PAF alignments are converted into `porec_all.porec.gz`, which retains the multi-
 The [allele-stage command](../scripts/porec/alleles.cmd.sh), run from `cphasing_output/1.alleles/`, is:
 
 ```bash
-cphasing alleles -f ../xjdy_old.fa -k 19 -w 19 -m 0.5 -d 0.1 -t 100
+cphasing alleles -f ../xjdy_unitigs.fa -k 19 -w 19 -m 0.5 -d 0.1 -t 100
 ```
 
-The allele-identification stage uses `-k 19`, `-w 19`, `-m 0.5`, and `-d 0.1`. Its partig log additionally records `-c 60 -n 5`. The resulting `xjdy_old.allele.table` supplies allelic-relationship information for hypergraph partitioning and scaffolding.
+The allele-identification stage uses `-k 19`, `-w 19`, `-m 0.5`, and `-d 0.1`. Its partig log additionally records `-c 60 -n 5`. The resulting `xjdy_unitigs.allele.table` supplies allelic-relationship information for hypergraph partitioning and scaffolding.
 
 ## 4 Prepare contacts for scaffolding
 
 The [preparation command](../scripts/porec/prepare.cmd.sh), run from `cphasing_output/2.prepare/`, is:
 
 ```bash
-cphasing prepare ../xjdy_old.fa ../porec_all.pairs.gz \
+cphasing prepare ../xjdy_unitigs.fa ../porec_all.pairs.gz \
   -p None -q 0 -t 100 --skip-pairs2contacts
 ```
 
@@ -98,8 +98,8 @@ The [hyperpartition command](../scripts/porec/hyperpartition.cmd.sh), run from `
 
 ```bash
 cphasing hyperpartition \
-  ../porec_all.porec.gz ../xjdy_old.contigsizes output.clusters.txt --porec \
-  --mode phasing -at ../1.alleles/xjdy_old.allele.table \
+  ../porec_all.porec.gz ../xjdy_unitigs.contigsizes output.clusters.txt --porec \
+  --mode phasing -at ../1.alleles/xjdy_unitigs.allele.table \
   -r1 -1.0 -ir1 0.8 \
   -r2 1.0 -ir2 0.8 \
   -as 0.85 -mao 0.3 \
@@ -135,9 +135,9 @@ The [scaffolding command](../scripts/porec/scaffolding.cmd.sh), run from `cphasi
 cphasing scaffolding \
   ../3.hyperpartition/output.clusters.txt ../2.prepare/porec_all.counts_AAGCTT.txt \
   ../2.prepare/porec_all.clm.gz \
-  -at ../1.alleles/xjdy_old.allele.table \
+  -at ../1.alleles/xjdy_unitigs.allele.table \
   -sc ../2.prepare/porec_all.split.contacts \
-  -f ../xjdy_old.fa -t 100 -o groups.agp -m precision
+  -f ../xjdy_unitigs.fa -t 100 -o groups.agp -m precision
 ```
 
 Scaffolding uses **precision** mode and writes `groups.agp`, which records sequence placement and orientation within the phased groups. The group assignments and AGP provide the Pore-C-based results for subsequent integration with the progeny-based assignments.
@@ -147,7 +147,7 @@ Scaffolding uses **precision** mode and writes `groups.agp`, which records seque
 The [plotting script](../scripts/porec/plot.cmd.sh), run from `cphasing_output/5.plot/`, uses mapping quality **1**, a contact-matrix bin size of **10 kb**, and a displayed heatmap bin size of **500 kb**:
 
 ```bash
-cphasing pairs2cool ../porec_all.pairs.gz ../xjdy_old.contigsizes \
+cphasing pairs2cool ../porec_all.pairs.gz ../xjdy_unitigs.contigsizes \
   porec_all.q1.10k.cool -q 1 -bs 10k
 cphasing plot -a ../4.scaffolding/groups.agp -m porec_all.q1.10k.cool \
   -o groups.q1.500k.wg.png -bs 500k -oc
