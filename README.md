@@ -14,6 +14,7 @@ This repository contains scripts and workflow documentation for genome assembly,
 | 6. Graph resolution | [Collapsed-node duplication, edge pruning, artifact removal, and sequence merging](docs/06-graph-resolution.md) | Manual operations in Bandage |
 | 7. Haplotype-specific gap filling | [Unique 51-mer anchors, UL reads, and four gap closures](docs/07-gap-filling.md) | [07_gap_filling.sh](scripts/07_gap_filling.sh) and reviewed fragment plans |
 | 8. 45S rDNA array construction | [Consensus repeat assembly, copy-number evaluation, and uniform Chr6 allocation](docs/08-rdna-assembly.md) | [08_rdna_assembly.sh](scripts/08_rdna_assembly.sh) |
+| 9. Genome quality assessment | [Assembly statistics, read support, completeness, QV, and switch errors](docs/09-genome-quality.md) | [09_genome_quality.sh](scripts/09_genome_quality.sh) |
 
 ## System requirements
 
