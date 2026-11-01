@@ -24,7 +24,7 @@ flowchart TD
 
 ### 1 Duplicate collapsed unitigs and assign copies
 
-Duplicate collapsed unitigs based on their depth ratios. Assign the resulting copies to specific haplotypes using their connectivity to adjacent, phased unitigs. The depth ratio provides copy-multiplicity evidence, while the phased neighboring nodes guide haplotype assignment and the connections retained for each copy.
+For each collapsed unitig, estimate its total copy multiplicity as `N = floor(depth_ratio + 0.5)`, rounding half-integer ratios upward. Restore N graph copies by retaining the original node and creating N−1 additional copies. For example, depth ratios of 2.3 and 2.7 yield two and three total copies, respectively. Assign the resulting copies to specific haplotypes using their connectivity to adjacent, phased unitigs. The depth ratio provides copy-multiplicity evidence, while the phased neighboring nodes guide haplotype assignment and the connections retained for each copy.
 
 ### 2 Prune edges between different haplotypes
 
@@ -43,7 +43,7 @@ Merge the resulting fully phased unitigs along valid edges to reconstruct contig
 | Item | Rule or operation |
 | --- | --- |
 | Collapsed-node identification | Depth ratio **>1.5**, determined in Step 2. |
-| Collapsed-node duplication | Guided by depth ratios. |
+| Collapsed-node duplication | N = floor(depth ratio + 0.5) total copies; create N−1 additional copies. |
 | Assignment of duplicated copies | Connectivity to adjacent phased unitigs. |
 | Edge pruning | Remove edges between unitigs assigned to different haplotypes. |
 | Low-coverage artifact removal | Depth ratio **<0.1**. |
@@ -59,7 +59,7 @@ These are manual graph-editing operations in Bandage. The thresholds above apply
 
 ## Methods text
 
-> Haplotype assignments and the status of collapsed sequences were visualized on the assembly graph using Bandage (v0.9.0). Collapsed unitigs were duplicated based on their depth ratios, and the resulting copies were assigned to specific haplotypes guided by their connectivity to adjacent, phased unitigs. Edges connecting unitigs belonging to distinct haplotypes were pruned to resolve erroneous paths. Low-coverage artifacts with depth ratios below 0.1 and unitigs exhibiting structurally invalid connections were discarded. The resulting fully phased unitigs were then merged along valid edges to reconstruct contiguous sequences.
+> Haplotype assignments and the status of collapsed sequences were visualized on the assembly graph using Bandage (v0.9.0). For each collapsed unitig, the total copy multiplicity was estimated by rounding its depth ratio to the nearest integer, with half-integer values rounded upward. The unitig was expanded to this number of graph copies, and the resulting copies were assigned to specific haplotypes guided by their connectivity to adjacent, phased unitigs. Edges connecting unitigs belonging to distinct haplotypes were pruned to resolve erroneous paths. Low-coverage artifacts with depth ratios below 0.1 and unitigs exhibiting structurally invalid connections were discarded. The resulting fully phased unitigs were then merged along valid edges to reconstruct contiguous sequences.
 
 ## References
 
