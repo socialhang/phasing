@@ -3,8 +3,8 @@
 set -euo pipefail
 
 cphasing hyperpartition \
-    ../porec_all.porec.gz ../xjdy_old.contigsizes output.clusters.txt --porec \
-     --mode phasing -at ../1.alleles/xjdy_old.allele.table \
+    ../porec_all.porec.gz ../xjdy_unitigs.contigsizes output.clusters.txt --porec \
+     --mode phasing -at ../1.alleles/xjdy_unitigs.allele.table \
      -r1 -1.0 -ir1 0.8 \
      -r2 1.0 -ir2 0.8 \
      -as 0.85 -mao 0.3 \
