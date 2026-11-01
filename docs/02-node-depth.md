@@ -17,13 +17,15 @@ flowchart LR
     F --> G[bedtools genomecov -bga]
     G --> H[100 bp windows over positive-depth bases]
     H --> I[Per-node KDE mode and window mean]
+    I --> J[UL depth ratio relative to genome-wide peak]
+    J --> K[Collapsed nodes: ratio greater than 1.5]
 ```
 
 ## Software
 
 | Component | Use |
 | --- | --- |
-| GraphAligner | Align reads to the unitig graph with `-x vg`. |
+| GraphAligner v1.0.20 | Align reads to the unitig graph with `-x vg`. |
 | bedtools | Used by pybedtools for interval intersection and by `genomecov` for depth. |
 | Python 3, pybedtools | Run [gaf2paf.py](../scripts/node_depth/gaf2paf.py). |
 | Python 3, NumPy, SciPy, matplotlib | Run [get_KDE_Mode_v2.py](../scripts/node_depth/get_KDE_Mode_v2.py); matplotlib is imported by the source script. |
@@ -137,6 +139,25 @@ The output is tab-separated, without a header:
 
 Column 3 is a mean of window statistics, with a partial window receiving the same weight as a full one. Because zero-depth bases are excluded, it is not a mean over all bases in a node. Nodes with no positive-depth bases are absent from the output.
 
+## 5 Identify collapsed nodes
+
+Use the ONT UL alignment depths to identify collapsed unitigs. UL reads are aligned to the assembly graph using GraphAligner **v1.0.20** and processed through the same interval-conversion and depth-summary workflow described above.
+
+The **depth ratio** for each node is its UL read-alignment depth divided by the peak depth of the whole-genome coverage distribution:
+
+```text
+depth_ratio(node) = UL_alignment_depth(node) / whole_genome_UL_peak_depth
+```
+
+Use the peak and node depths from the same UL dataset. The whole-genome coverage-distribution peak provides the normalization baseline; the per-node KDE estimate provides the node depth.
+
+| Depth ratio | Classification or use |
+| --- | --- |
+| **> 1.5** | Collapsed unitig. |
+| **< 0.1** | Low-coverage artifact, removed during graph resolution. |
+
+The inequalities are strict: ratios equal to 1.5 or 0.1 do not satisfy the corresponding classification rule. Haplotype assignments and collapsed-node status are displayed on the graph for the manual operations in [Step 6](06-graph-resolution.md). During resolution, collapsed nodes are duplicated according to their depth ratios and connectivity to adjacent phased nodes.
+
 ## Repository wrapper
 
 Copy the [example read manifest](../examples/node_depth/hifi_reads.list) into your working directory and make its paths match your files. Submit each stage through PBS with suitable CPU, memory, and walltime allocations. For the mapping stage, allocate 40 threads for the default command.
@@ -177,7 +198,7 @@ This example plots one mode estimate per reported node.
 | `hifi.base.depth.gz` | Compressed coverage intervals. |
 | `hifi.last.depth` | Node ID, KDE mode/fallback, and window mean. |
 
-This step produces depth estimates. Depth thresholds for node classification, graph pruning, or collapsed-node duplication belong to subsequent steps and are not introduced here.
+This step produces node-depth estimates and identifies collapsed nodes. Node duplication, haplotype-specific edge pruning, artifact removal, and sequence merging are described in [Step 6](06-graph-resolution.md).
 
 ## Software references
 
