@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build four equal tandem arrays from the 10,261 bp 45S consensus unit.
 
-The copy count is an explicit assembly-construction input, not inferred here.
+The assembly-construction default is 781 copies per haplotype (3,124 total).
 """
 import argparse
 from pathlib import Path
@@ -13,7 +13,8 @@ from localize_markers import fasta
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("unit_fasta")
-    parser.add_argument("copies_per_haplotype", type=int)
+    parser.add_argument("copies_per_haplotype", type=int, nargs="?", default=781,
+                        help="Copies per Chr6 haplotype (default: 781; 3,124 total)")
     parser.add_argument("--fasta", default="rdna_arrays.fa")
     parser.add_argument("--summary", default="rdna_arrays.tsv")
     args = parser.parse_args()
