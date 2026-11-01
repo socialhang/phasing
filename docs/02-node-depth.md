@@ -1,6 +1,6 @@
 # Step 2 Graph-node depth evaluation
 
-This step estimates HiFi and ultra-long (UL) read depth for each unitig in the assembly graph. Both read types are processed using the same workflow; the commands below use HiFi reads as an example. Process HiFi and UL datasets separately in their respective working directories. Reads are aligned to the graph, graph-path alignments are projected onto unitig intervals, and bedtools produces coverage intervals. A custom script summarizes coverage in 100 bp windows and reports a kernel-density mode and a mean for each covered unitig.
+This step estimates ONT ultra-long (UL) read depth for each unitig in the assembly graph and uses normalized depth to identify collapsed nodes and estimate their copy multiplicities. Reads are aligned to the graph, graph-path alignments are projected onto unitig intervals, and bedtools produces coverage intervals. A custom script summarizes coverage in 100 bp windows and reports a kernel-density mode and a mean for each covered unitig.
 
 The [workflow script](../scripts/02_node_depth.sh) runs the alignment, interval conversion, coverage calculation, and per-node depth summarization stages.
 
@@ -8,7 +8,7 @@ The [workflow script](../scripts/02_node_depth.sh) runs the alignment, interval 
 
 ```mermaid
 flowchart LR
-    A[HiFi or UL FASTQ reads] --> C[GraphAligner: 40 threads, vg preset]
+    A[ONT UL FASTQ reads] --> C[GraphAligner: 40 threads, vg preset]
     B[Unitig GFA] --> C
     C --> D[GAF alignments]
     D --> E[Project paths onto unitig intervals]
@@ -19,6 +19,7 @@ flowchart LR
     H --> I[Per-node KDE mode and window mean]
     I --> J[UL depth ratio relative to genome-wide peak]
     J --> K[Collapsed nodes: ratio greater than 1.5]
+    K --> L[Estimated copies: round depth ratio]
 ```
 
 ## Software
@@ -37,7 +38,7 @@ The Python dependencies are listed in [requirements-node-depth.txt](../requireme
 
 - `hifiasm.asm.bp.p_utg.gfa`: the unitig graph being evaluated.
 - `hifiasm.asm.bp.p_utg.fa.fai`: a matching unitig FASTA index, providing node names and lengths to bedtools.
-- `hifi_reads.fq.gz`: the HiFi FASTQ input used as the example throughout this page. Substitute `ul_reads.fq.gz` when evaluating UL depth. For split datasets, list one FASTQ path per line in the [example manifest](../examples/node_depth/hifi_reads.list).
+- `ul_reads.fq.gz`: ONT UL reads used for node-depth evaluation. For split datasets, list one FASTQ path per line in the [example manifest](../examples/node_depth/ul_reads.list).
 
 ## 1 Align reads to the graph
 
@@ -45,8 +46,8 @@ The alignment command for each FASTQ input is:
 
 ```bash
 GraphAligner -t40 -g hifiasm.asm.bp.p_utg.gfa \
-  -f hifi_reads.fq.gz \
-  -a hifi_reads.fq.gz.gaf -x vg
+  -f ul_reads.fq.gz \
+  -a ul_reads.fq.gz.gaf -x vg
 ```
 
 Run the command for each FASTQ file in the selected dataset. The explicit mapping settings are **40 threads** and the **`vg` preset**. Additional mapping-quality and sequence-identity filters are not applied.
@@ -58,8 +59,8 @@ The workflow script processes the listed parts sequentially using the same mappi
 ```bash
 python3 /path/to/phasing/scripts/node_depth/gaf2paf.py \
   hifiasm.asm.bp.p_utg.gfa \
-  hifi_reads.fq.gz.gaf \
-  > hifi_reads.fq.gz.gaf.bed
+  ul_reads.fq.gz.gaf \
+  > ul_reads.fq.gz.gaf.bed
 ```
 
 The conversion helper emits six columns:
@@ -90,16 +91,16 @@ Merge the conversion outputs for the dataset being evaluated. The wrapper uses t
 The recorded column transformation and coverage command are:
 
 ```bash
-awk '{print $3"\t"$4"\t"$5"\t"$1"\t"$6}' hifi.raw.bed \
-  | sort -k1,1 -k2,2n > hifi.bed
+awk '{print $3"\t"$4"\t"$5"\t"$1"\t"$6}' ul.raw.bed \
+  | sort -k1,1 -k2,2n > ul.bed
 
-bedtools genomecov -i hifi.bed -g hifiasm.asm.bp.p_utg.fa.fai \
-  -bga > hifi.base.depth
+bedtools genomecov -i ul.bed -g hifiasm.asm.bp.p_utg.fa.fai \
+  -bga > ul.base.depth
 
-gzip -c hifi.base.depth > hifi.base.depth.gz
+gzip -c ul.base.depth > ul.base.depth.gz
 ```
 
-`hifi.bed` puts node, start, and end in the first three columns. `-bga` produces bedGraph-style constant-depth intervals, including zero-depth regions:
+`ul.bed` puts node, start, and end in the first three columns. `-bga` produces bedGraph-style constant-depth intervals, including zero-depth regions:
 
 ```text
 unitig_id  interval_start  interval_end  depth
@@ -111,7 +112,7 @@ The gzip command compresses the coverage intervals for the per-node depth calcul
 
 ```bash
 python3 /path/to/phasing/scripts/node_depth/get_KDE_Mode_v2.py \
-  hifi.base.depth.gz > hifi.last.depth
+  ul.base.depth.gz > ul.last.depth
 ```
 
 The implementation uses these settings:
@@ -156,23 +157,39 @@ Use the peak and node depths from the same UL dataset. The whole-genome coverage
 | **> 1.5** | Collapsed unitig. |
 | **< 0.1** | Low-coverage artifact, removed during graph resolution. |
 
+### Estimate collapsed copy multiplicity
+
+For nodes classified as collapsed (**depth ratio >1.5**), round the depth ratio to the nearest integer, with half-integer values rounded upward:
+
+```text
+estimated_total_copies = floor(depth_ratio + 0.5)
+```
+
+| Depth ratio | Estimated total copies represented by the collapsed node |
+| --- | --- |
+| 1.5 < ratio < 2.5 | 2 |
+| 2.5 ≤ ratio < 3.5 | 3 |
+| 3.5 ≤ ratio < 4.5 | 4 |
+
+For example, ratios of **2.3** and **2.7** indicate collapse of **two** and **three** copies, respectively. Apply the same rounding rule for larger ratios. The estimate is the **total** number of copies represented by the original node. To restore N graph copies, retain the original and create N−1 additional copies; assignment of the resulting copies to haplotypes uses adjacent phased-node connectivity in Step 6.
+
 The inequalities are strict: ratios equal to 1.5 or 0.1 do not satisfy the corresponding classification rule. Haplotype assignments and collapsed-node status are displayed on the graph for the manual operations in [Step 6](06-graph-resolution.md). During resolution, collapsed nodes are duplicated according to their depth ratios and connectivity to adjacent phased nodes.
 
 ## Repository wrapper
 
-Copy the [example read manifest](../examples/node_depth/hifi_reads.list) into your working directory and make its paths match your files. Submit each stage through PBS with suitable CPU, memory, and walltime allocations. For the mapping stage, allocate 40 threads for the default command.
+Copy the [example read manifest](../examples/node_depth/ul_reads.list) into your working directory and make its paths match your files. Submit each stage through PBS with suitable CPU, memory, and walltime allocations. For the mapping stage, allocate 40 threads for the default command.
 
 ```bash
 # Run each command in an appropriate PBS job, in this order.
-bash /path/to/phasing/scripts/02_node_depth.sh map      /path/to/work /path/to/work/hifi_reads.list
-bash /path/to/phasing/scripts/02_node_depth.sh convert  /path/to/work /path/to/work/hifi_reads.list
-bash /path/to/phasing/scripts/02_node_depth.sh coverage /path/to/work /path/to/work/hifi_reads.list
-bash /path/to/phasing/scripts/02_node_depth.sh kde      /path/to/work /path/to/work/hifi_reads.list
+bash /path/to/phasing/scripts/02_node_depth.sh map      /path/to/work /path/to/work/ul_reads.list
+bash /path/to/phasing/scripts/02_node_depth.sh convert  /path/to/work /path/to/work/ul_reads.list
+bash /path/to/phasing/scripts/02_node_depth.sh coverage /path/to/work /path/to/work/ul_reads.list
+bash /path/to/phasing/scripts/02_node_depth.sh kde      /path/to/work /path/to/work/ul_reads.list
 ```
 
 `GFA`, `FAI`, `PYTHON`, and `THREADS` can be supplied as environment variables. Their defaults use the filenames, interpreter choice, and thread count shown above. The original KDE helper iterates over covered bases and retains window summaries in memory, so submit it as a compute job for a large graph.
 
-For UL reads, supply a manifest containing the UL FASTQ paths and run the same four stages in a separate working directory. The wrapper uses the `hifi.*` example output names for either dataset; keeping separate working directories retains the two depth estimates independently.
+The manifest contains the UL FASTQ paths, and the wrapper writes depth outputs with the `ul.*` prefix.
 
 ## Optional distribution plot
 
@@ -181,7 +198,7 @@ The [R helper](../scripts/node_depth/plot_depth_distribution.R) accepts a text f
 For example, an optional diagnostic of the per-node estimates can be prepared as follows:
 
 ```bash
-awk '{print $2}' hifi.last.depth > node_mode_values.txt
+awk '{print $2}' ul.last.depth > node_mode_values.txt
 Rscript /path/to/phasing/scripts/node_depth/plot_depth_distribution.R node_mode_values.txt
 ```
 
@@ -193,10 +210,10 @@ This example plots one mode estimate per reported node.
 | --- | --- |
 | `<reads>.gaf` | GraphAligner alignments for each FASTQ input. |
 | `<reads>.gaf.bed` | Six-column read-to-node intervals from the custom converter. |
-| `hifi.raw.bed` | Concatenated interval records for the selected dataset. |
-| `hifi.bed` | Reordered and sorted node intervals. |
-| `hifi.base.depth.gz` | Compressed coverage intervals. |
-| `hifi.last.depth` | Node ID, KDE mode/fallback, and window mean. |
+| `ul.raw.bed` | Concatenated interval records for the selected dataset. |
+| `ul.bed` | Reordered and sorted node intervals. |
+| `ul.base.depth.gz` | Compressed coverage intervals. |
+| `ul.last.depth` | Node ID, KDE mode/fallback, and window mean. |
 
 This step produces node-depth estimates and identifies collapsed nodes. Node duplication, haplotype-specific edge pruning, artifact removal, and sequence merging are described in [Step 6](06-graph-resolution.md).
 
