@@ -30,7 +30,7 @@ case "$STAGE" in
     ;;
   arrays)
     UNIT="${1:?Specify the 10261 bp consensus FASTA}"
-    COPIES="${2:?Specify the chosen integer copies per Chr6 haplotype}"
+    COPIES="${2:-781}"
     "$PYTHON" "$SCRIPT_DIR/rdna/build_arrays.py" "$UNIT" "$COPIES" \
       --fasta rdna_arrays.fa --summary rdna_arrays.tsv
     ;;
