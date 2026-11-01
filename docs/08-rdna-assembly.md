@@ -47,7 +47,7 @@ MBG -i rdna_reads.fq.gz -o rdna_consensus.gfa -k 4001 -a 4 -u 4
 | `-a` | `4` | Minimum k-mer abundance. |
 | `-u` | `4` | Minimum unitig abundance. |
 
-The assembled repeat unit is **10,261 bp** long. Export the selected consensus repeat sequence as a single FASTA record in `rdna_unit.fa`. This sequence is the repeat template used for array construction.
+The assembled repeat unit is **10,261 bp** long. Export the selected consensus repeat sequence as a single FASTA record in `rdna_unit.fa`. This sequence is the repeat template used for array construction. Its annotation includes the intergenic spacer/tandem-repeat region, promoter, 18S rRNA, ITS1, 5.8S rRNA, ITS2 and 28S rRNA, as shown in Extended Data Fig. 2e.
 
 The wrapper permits a thread count through `THREADS` while retaining the three assembly parameters:
 
@@ -106,6 +106,10 @@ python3 /path/to/phasing/scripts/rdna/copy_ratios.py \
 ```
 
 Compare the 18S, 5.8S and 28S copy-abundance distributions across HiFi, UL and NGS data. The selected total 45S copy number is validated using ddPCR and provides the abundance target for constructing the arrays.
+
+### Final assembly count and experimental comparison
+
+The final resolved XJDYt2t assembly contains **3,125 copies of 45S rDNA**, as reported in **Extended Data Fig. 2g**. This assembly count is compared with estimates from ddPCR, HiFi, UL and NGS data. The ddPCR results are presented as **mean ± standard deviation across ddPCR replicates**.
 
 ## 5 Allocate the total uniformly across four Chr6 haplotypes
 
