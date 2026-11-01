@@ -1,6 +1,6 @@
 # Step 8 Consensus-based construction of 45S rDNA arrays
 
-rDNA-containing reads were assembled with **MBG v1.0.16** using a minimizer-based de Bruijn graph algorithm, producing a single **10,261 bp consensus repeat unit**. The abundance of 45S rDNA was evaluated using HiFi, ONT UL and NGS data and validated by ddPCR. The selected total copy number was distributed uniformly across the four homologous copies of chromosome 6 to construct the final arrays.
+rDNA-containing reads were assembled with **MBG v1.0.16** using a minimizer-based de Bruijn graph algorithm, producing a single **10,261 bp consensus repeat unit**. The abundance of 45S rDNA was evaluated using HiFi, ONT UL and NGS data and validated by ddPCR. For assembly construction, **3,124 repeat copies** were allocated uniformly across the four homologous copies of chromosome 6, with **781 copies per haplotype**.
 
 Each constructed array consists of tandem copies of the same consensus repeat unit. The equal allocation specifies how the estimated total abundance is represented across the four Chr6 haplotypes in the assembly.
 
@@ -109,25 +109,24 @@ Compare the 18S, 5.8S and 28S copy-abundance distributions across HiFi, UL and N
 
 ### Final assembly count and experimental comparison
 
-The final resolved XJDYt2t assembly contains **3,125 copies of 45S rDNA**, as reported in **Extended Data Fig. 2g**. This assembly count is compared with estimates from ddPCR, HiFi, UL and NGS data. The ddPCR results are presented as **mean ± standard deviation across ddPCR replicates**.
+The copy count selected for the constructed XJDYt2t 45S rDNA arrays is **3,124**, comprising **781 copies on each of the four Chr6 haplotypes**. This is the assembly count used for the comparison in **Extended Data Fig. 2g**. This assembly count is compared with estimates from ddPCR, HiFi, UL and NGS data. The ddPCR results are presented as **mean ± standard deviation across ddPCR replicates**.
 
 ## 5 Allocate the total uniformly across four Chr6 haplotypes
 
-Let N be the selected integer copy count for each Chr6 array:
+The construction uses N = **781** repeats per Chr6 haplotype:
 
 ```text
-copies_per_haplotype = N
-total_represented_copies = 4 × N
-array_length_per_haplotype = 10,261 × N bp
-total_array_length = 4 × 10,261 × N bp
+copies_per_haplotype = 781
+total_represented_copies = 4 × 781 = 3,124
+array_length_per_haplotype = 10,261 × 781 = 8,013,841 bp
+total_array_length = 4 × 8,013,841 = 32,055,364 bp
 ```
 
-All four arrays use the same consensus repeat unit and the same copy count. The selected integer N is supplied explicitly to the construction script so that the represented total is documented alongside the generated sequence.
+All four arrays use the same consensus repeat unit and the same copy count. The scripts default to **781 copies per haplotype**; the example below also supplies that count explicitly.
 
 ```bash
-: "${COPIES_PER_HAPLOTYPE:?Set the selected integer copy count}"
 bash /path/to/phasing/scripts/08_rdna_assembly.sh arrays \
-  rdna_unit.fa "$COPIES_PER_HAPLOTYPE"
+  rdna_unit.fa 781
 ```
 
 The [array-construction helper](../scripts/rdna/build_arrays.py) checks that the input contains exactly one 10,261 bp A/C/G/T repeat unit and writes four tandem arrays:
@@ -155,7 +154,7 @@ The accompanying TSV records the repeat-unit ID, unit length, number of repeats 
 
 ## Methods text
 
-> For 45S rDNA assembly, rDNA-containing reads were assembled using the minimizer-based de Bruijn graph algorithm implemented in MBG (v1.0.16; `-k 4001 -a 4 -u 4`), yielding a single 10,261 bp consensus repeat unit. The copy number of 45S rDNA was quantified using HiFi, UL and NGS data and validated by ddPCR. The total estimated copy number was distributed uniformly across the four homologous copies of chromosome 6. The corresponding arrays were constructed by tandemly repeating the consensus unit at the selected per-haplotype copy count.
+> For 45S rDNA assembly, rDNA-containing reads were assembled using the minimizer-based de Bruijn graph algorithm implemented in MBG (v1.0.16; `-k 4001 -a 4 -u 4`), yielding a single 10,261 bp consensus repeat unit. The copy number of 45S rDNA was quantified using HiFi, UL and NGS data and validated by ddPCR. For assembly construction, 3,124 copies were distributed uniformly across the four homologous copies of chromosome 6, with 781 tandem copies of the consensus unit per haplotype.
 
 ## References
 
