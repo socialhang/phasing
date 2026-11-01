@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # Run each stage in a PBS job or on an allocated compute node.
-# Use separate working directories for HiFi and UL; output names use the hifi example prefix.
+# Evaluate ONT UL reads; depth outputs use the ul prefix.
 # Usage: bash 02_node_depth.sh {map|convert|coverage|kde} WORK_DIR READS_LIST
-# The list contains one HiFi or UL FASTQ path per line, relative to WORK_DIR or absolute.
+# The list contains one UL FASTQ path per line, relative to WORK_DIR or absolute.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 STAGE="${1:?Specify map, convert, coverage, or kde}"
 WORK_DIR="${2:?Specify the working directory}"
-MANIFEST="${3:?Specify a HiFi or UL read list}"
+MANIFEST="${3:?Specify a UL read list}"
 GFA="${GFA:-hifiasm.asm.bp.p_utg.gfa}"
 FAI="${FAI:-hifiasm.asm.bp.p_utg.fa.fai}"
 THREADS="${THREADS:-40}"
@@ -40,14 +40,14 @@ case "$STAGE" in
     # Explicit inputs keep prior merged BED outputs out of a repeated run.
     for read_file in "${READS[@]}"; do
       cat -- "$(basename -- "$read_file").gaf.bed"
-    done > hifi.raw.bed
-    awk '{print $3"\t"$4"\t"$5"\t"$1"\t"$6}' hifi.raw.bed \
-      | sort -k1,1 -k2,2n > hifi.bed
-    bedtools genomecov -i hifi.bed -g "$FAI" -bga > hifi.base.depth
-    gzip -c hifi.base.depth > hifi.base.depth.gz
+    done > ul.raw.bed
+    awk '{print $3"\t"$4"\t"$5"\t"$1"\t"$6}' ul.raw.bed \
+      | sort -k1,1 -k2,2n > ul.bed
+    bedtools genomecov -i ul.bed -g "$FAI" -bga > ul.base.depth
+    gzip -c ul.base.depth > ul.base.depth.gz
     ;;
   kde)
-    "$PYTHON" "$SCRIPT_DIR/node_depth/get_KDE_Mode_v2.py" hifi.base.depth.gz > hifi.last.depth
+    "$PYTHON" "$SCRIPT_DIR/node_depth/get_KDE_Mode_v2.py" ul.base.depth.gz > ul.last.depth
     ;;
   *)
     printf 'Unknown stage: %s\nChoose map, convert, coverage, or kde.\n' "$STAGE" >&2
