@@ -2,6 +2,8 @@
 
 Pore-C reads were analyzed with C-phasing to provide long-range contact information for haplotype phasing. The workflow maps Pore-C reads to the assembly, constructs multi-contact and pairwise-contact representations, identifies allelic relationships, partitions sequences into chromosome and haplotype groups, and orders and orients sequences within those groups.
 
+For the combined phasing solution, progeny-based assignments were established first. Pore-C supplied haplotype assignments for the remaining 275 repetitive or highly similar nodes, completing the phasing of all 1,111 nodes in the initial string graph. See [Step 6](06-graph-resolution.md#combining-progeny-and-pore-c-assignments) for the integration procedure.
+
 ## Workflow
 
 ```mermaid

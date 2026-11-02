@@ -2,6 +2,12 @@
 
 Haplotype assignments from the progeny-based and Pore-C analyses, together with collapsed-sequence status from [Step 2](02-node-depth.md), were visualized on the assembly graph using **Bandage v0.9.0**. The graph was resolved manually by duplicating collapsed nodes, pruning haplotype-inconsistent edges, removing artifacts, and merging phased unitigs along valid connections.
 
+## Combining progeny and Pore-C assignments
+
+Progeny-derived assignments were established first. Unique 51-mers from the string graph were identified in WGS data from 100 F1 progeny of XJDY crossed with an Adina individual with a pentafoliolate phenotype. Their presence/absence vectors were used to calculate pairwise Pearson correlations, which were encoded as pseudo-contacts for the iterative, graph-based greedy pathfinding procedure in 3D-DNA, as described in [Step 4](04-progeny-phasing.md). This phased most nodes in the initial graph.
+
+Pore-C long-range linkage information was then used to phase the remaining **275 nodes**, which contained long repetitive sequences or sequences highly similar among haplotypes. Pore-C thus supplied assignments for nodes unresolved by the progeny markers. Together, the two stages phased all **1,111 nodes** in the initial string graph. The resulting combined node assignments were used for the graph-resolution operations below.
+
 ## Inputs
 
 - The assembly graph in GFA format.
