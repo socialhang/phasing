@@ -16,5 +16,6 @@ The source support accumulator initializes a window's four counters on its first
 - `assign_haplotypes.py`: first mapper-ranked PAF alignment per read, equivalent to the source `best0 ... 1`, followed by grouping on chromosome suffix `.1`–`.4`. Input must retain mapper order.
 - `assembly_metrics.py`: sequence/contig N50, counts and lengths of N-runs, and optional counting of reviewed telomere-positive chromosome ends. It reuses the repository FASTA reader.
 - `switch_summary.py`: retained, merged interval length divided by the full nuclear haplotype length from a FASTA index. BED intervals must be nonoverlapping. The overall rate uses the sum of all four haplotype lengths as its denominator.
+- `plot_support_separation.py`: optional NumPy/Matplotlib plotting of normalized strongest/second-strongest supports and empirical support-margin distributions, with a low-margin inset. Exports vector figures, window metrics, counts, and input checksums; reads existing support tables without recalculating or modifying them.
 
 Chromosome identifiers must follow `chr1.1` through `chr8.4`. Keep assembly identifiers identical across alignments, contact records, and the FASTA index. Genomic analyses should be submitted through the cluster scheduler.

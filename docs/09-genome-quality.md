@@ -17,7 +17,7 @@ The [evaluation wrapper](../scripts/09_genome_quality.sh) provides independent s
 | [BUSCO](https://busco.ezlab.org/busco_userguide.html) | 5.4.7; `embryophyta_odb10`, 10 threads |
 | [HiGlass](https://docs.higlass.io/) | 1.13.4; structural inspection of Hi-C and Pore-C contact maps |
 
-Additional command-line dependencies are samtools, bedtools, meryl, paftools.js, pigz, Python 3, Perl, and mosdepth for optional depth plots. The Python helpers in this step use the standard library.
+Additional command-line dependencies are samtools, bedtools, meryl, paftools.js, pigz, Python 3, Perl, and mosdepth for optional depth plots. The processing helpers use the Python standard library; the optional support-separation plotting helper requires NumPy and Matplotlib.
 
 ## 1 Basic assembly statistics
 
@@ -184,6 +184,19 @@ bash /path/to/phasing/scripts/09_genome_quality.sh switch porec.mnd assembly.fa.
 Outputs include window-pair counts (`*.cor.tsv`), per-window haplotype support (`*.stat.tsv`), candidate windows, retained merged switch regions, and per-haplotype/overall switch error rates. The statistics columns are: window ID, assembled haplotype, maximum-support haplotype, and support for haplotypes 1–4. Merged-region lengths include the intervening spans joined by the 50-kb merge rule; isolated 10-kb candidates are removed by the length filter.
 
 The [window converter](../scripts/quality/window_contacts.py) and [support accumulator](../scripts/quality/sum_haplotype_support.py) retain the source implementations. Their detailed behavior is described in the [helper notes](../scripts/quality/README.md).
+
+### Visualize strongest and second-strongest support
+
+The [plotting helper](../scripts/quality/plot_support_separation.py) reads the seven-column `*.stat.tsv` tables before candidate selection and interval merging. For each window, let `T` be the sum of the four haplotype supports and `S1 >= S2` their two highest values. It plots a hexbin density map of `S1/T` versus `S2/T` and per-haplotype empirical cumulative distributions of `(S1-S2)/T`, including a low-margin inset. These quantities are normalized accumulated supports, not individual Pearson coefficients.
+
+```bash
+python3 /path/to/phasing/scripts/quality/plot_support_separation.py \
+  --dataset 'XJDYt2t progeny=progeny.stat.tsv' \
+  --dataset 'XJDYt2t Pore-C=porec.stat.tsv' \
+  --outdir support_separation
+```
+
+By default, only windows with `T > 200` enter the plots. Outputs include PNG/PDF/SVG figures, per-window metrics, per-haplotype summary counts, and input SHA-256 checksums. Exactly tied windows have zero normalized margin. The summary also reports fractions with margins at most 0.05 and 0.1 as descriptive statistics; these values are not additional switch-error thresholds. Windows absent from the input support tables are not counted as recorded or evaluated windows.
 
 ## 9 Structural inspection
 
