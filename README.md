@@ -4,6 +4,8 @@ This repository contains scripts and workflow documentation for genome assembly,
 
 ## Workflow manual
 
+The integrated [Supplementary pipeline manual](docs/supplementary-pipeline-manual.md) combines all nine stages, with an overview diagram, execution parameters, commands, and input/output conventions. An [editable Word version](docs/supplementary-pipeline-manual.docx) is available for manuscript submission.
+
 | Step | Documentation | Script |
 | --- | --- | --- |
 | 1. Initial assembly | [hifiasm version, inputs, command, and parameters](docs/01-initial-assembly.md) | [01_initial_assembly.sh](scripts/01_initial_assembly.sh) |
