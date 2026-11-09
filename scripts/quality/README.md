@@ -9,7 +9,7 @@ The entry point is [09_genome_quality.sh](../09_genome_quality.sh); see the [Ste
 - `sum_haplotype_support.py`: accumulates support for the four homologous haplotypes within each chromosome group and reports the maximum-support haplotype.
 - `count_window_pairs.pl`: equivalent to the source `count0` line counter; counts complete, ordered window-pair records.
 
-The source support accumulator initializes a window's four counters on its first encountered pair and adds support on subsequent encounters. The initializing contribution is therefore omitted. Ties select the first maximum, in haplotype order 1–4. The Perl counter emits records in hash order, so that initializing pair can depend on record order. These source behaviors are retained for comparison with the directory workflow. Matrix counts are correlation-derived pseudo-contact support for progeny, or contact support for Pore-C; they are accumulated numerically without converting them back to individual Pearson coefficients.
+The support accumulator includes every input pair's count for both endpoint windows, including the first pair encountered for each window. This corrects the earlier implementation, which initialized counters without adding the initializing contribution. Recompute existing support tables and downstream switch summaries to apply this correction. Ties still select the first maximum, in haplotype order 1–4. The Perl counter emits records in hash order; record order no longer determines which contribution is omitted. Matrix counts are correlation-derived pseudo-contact support for progeny, or contact support for Pore-C; they are accumulated numerically without converting them back to individual Pearson coefficients.
 
 ## Portable helpers
 
