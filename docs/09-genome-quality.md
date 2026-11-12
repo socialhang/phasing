@@ -152,13 +152,13 @@ Set `BUSCO_LINEAGE` to the local lineage directory when using the wrapper's `bus
 
 ### Progeny correlation support
 
-Identify genome-wide unique 51-mers in the final assembly and retain one randomly selected marker per informative 10-kb window. Construct its presence/absence vector across the 100 progeny using the frequency threshold **at least three** described in [Step 4](04-progeny-phasing.md). Approximately 310,000 informative windows give approximately 96 billion ordered window-pair comparisons, including the diagonal before filtering.
+Identify genome-wide unique 51-mers in the final assembly and retain one randomly selected marker per informative 10-kb window. Construct its presence/absence vector across the 100 progeny using the frequency threshold **at least three** described in [Step 4](04-progeny-phasing.md).
 
 Calculate pairwise Pearson correlations between the vectors and encode the correlation signals as the pseudo-contact records described in Step 4. The matrix counts represent correlation-derived support. For each focal window, accumulate that support separately for the four haplotypes of the same chromosome group, then identify the haplotype with the greatest accumulated support. Thus, the comparison uses the strongest **haplotype-level correlation support**.
 
 ### Shared switch-region filtering
 
-The public workflow follows the directory scripts:
+The workflow applies the following window and interval filters:
 
 1. Convert contact positions to 10-kb window indices using integer division by 10,000; discard pairs within the same window.
 2. Count repeated ordered window pairs to construct the window matrix.
@@ -183,7 +183,7 @@ bash /path/to/phasing/scripts/09_genome_quality.sh switch porec.mnd assembly.fa.
 
 Outputs include window-pair counts (`*.cor.tsv`), per-window haplotype support (`*.stat.tsv`), candidate windows, retained merged switch regions, and per-haplotype/overall switch error rates. The statistics columns are: window ID, assembled haplotype, maximum-support haplotype, and support for haplotypes 1–4. Merged-region lengths include the intervening spans joined by the 50-kb merge rule; isolated 10-kb candidates are removed by the length filter.
 
-The [window converter](../scripts/quality/window_contacts.py) and [support accumulator](../scripts/quality/sum_haplotype_support.py) retain the source implementations. Their detailed behavior is described in the [helper notes](../scripts/quality/README.md).
+The [window converter](../scripts/quality/window_contacts.py) assigns contacts to windows. The current [support accumulator](../scripts/quality/sum_haplotype_support.py) counts every pair for both endpoint windows, including the first pair encountered for each window. Exact ties are assigned to the first maximum in haplotype order 1–4, and near-ties use the numerical maximum without a separate margin cutoff. Windows without eligible markers or sufficient support contribute no candidate errors, while the denominator remains the full haplotype length. See the [helper notes](../scripts/quality/README.md) for implementation details.
 
 ### Visualize strongest and second-strongest support
 
@@ -191,12 +191,23 @@ The [plotting helper](../scripts/quality/plot_support_separation.py) reads the s
 
 ```bash
 python3 /path/to/phasing/scripts/quality/plot_support_separation.py \
-  --dataset 'XJDYt2t progeny=progeny.stat.tsv' \
-  --dataset 'XJDYt2t Pore-C=porec.stat.tsv' \
+  --dataset 'XJDYt2t progeny=xjdy.progeny.stat.tsv' \
+  --dataset 'Adina progeny=adina.progeny.stat.tsv' \
   --outdir support_separation
 ```
 
 By default, only windows with `T > 200` enter the plots. Outputs include PNG/PDF/SVG figures, per-window metrics, per-haplotype summary counts, and input SHA-256 checksums. Exactly tied windows have zero normalized margin. The summary also reports fractions with margins at most 0.05 and 0.1 as descriptive statistics; these values are not additional switch-error thresholds. Windows absent from the input support tables are not counted as recorded or evaluated windows.
+
+### Supplementary Fig. 2
+
+Supplementary Fig. 2 was generated from the original XJDYt2t and Adina progeny support tables, before the first-pair accumulation correction. The plotting helper reads the supplied tables directly. Use those original tables to reproduce the reported figure, or regenerate the tables, figure, and switch summaries together when using the corrected accumulator.
+
+Among the 10-kb windows with total support greater than 200, the difference between the two strongest supports exceeded 10% of total support in 99.98% of XJDYt2t windows and 99.90% of Adina windows.
+
+| Progeny dataset | Evaluated windows | Normalized margin > 0.10 | Exact ties |
+| --- | ---: | ---: | ---: |
+| XJDYt2t | 167,116 | 167,087 (99.98%) | 0 |
+| Adina | 135,905 | 135,772 (99.90%) | 4 (0.003%) |
 
 ## 9 Structural inspection
 
