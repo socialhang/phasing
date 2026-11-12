@@ -425,13 +425,14 @@ bash "$PHASING/scripts/09_genome_quality.sh" switch \
 
 MND records supply chromosome and position in columns 2–3 and 6–7. The per-window statistics have seven columns: window ID, assembled haplotype, predicted haplotype, and support for haplotypes 1–4. Fully tied maxima select the first maximum in haplotype order 1–4; there is no additional near-tie threshold. Constant progeny vectors produce no accepted pseudo-contacts. Windows without effective marker/contact support are not called as candidate errors, although the denominator remains the full haplotype length.
 
-The public accumulator retains the source implementation: a window's first encounter initializes four zero counters, and subsequent encounters add support, so its initializing contribution is omitted. Upstream Perl hash order can change which pair is encountered first. This implementation detail is documented in scripts/quality/README.md. Preserve the evaluated support tables when tracing the reported results.
+The current public accumulator counts every pair for both endpoint windows, including each window's first pair. Supplementary Fig. 2 uses the original progeny support tables generated before this correction. Use the original tables to reproduce the reported figure. For a rerun with the corrected accumulator, regenerate the support tables, figure, and switch summaries together. See the [Step 9 guide](09-genome-quality.md#supplementary-fig-2) and [helper notes](../scripts/quality/README.md).
 
 To visualize haplotype-support separation in progeny data, plot the highest and second-highest support fractions and the empirical distribution of their normalized difference:
 
 ```bash
 python3 "$PHASING/scripts/quality/plot_support_separation.py" \
-  --dataset 'XJDYt2t progeny=progeny.stat.tsv' \
+  --dataset 'XJDYt2t progeny=xjdy.progeny.stat.tsv' \
+  --dataset 'Adina progeny=adina.progeny.stat.tsv' \
   --outdir support_separation
 ```
 
