@@ -1,6 +1,6 @@
 # Phasing methods
 
-This repository contains scripts and workflow documentation for genome assembly, phasing using progeny k-mers and Pore-C data, and variant processing in autotetraploid alfalfa.
+This repository contains scripts and workflow documentation for genome assembly, phasing using progeny k-mers and Pore-C data, and downstream pangenome and association analyses in autotetraploid alfalfa.
 
 ## Workflow manual
 
@@ -17,6 +17,15 @@ The integrated [Supplementary pipeline manual](docs/supplementary-pipeline-manua
 | 7. Haplotype-specific gap filling | [Unique 51-mer anchors, UL reads, and four gap closures](docs/07-gap-filling.md) | [07_gap_filling.sh](scripts/07_gap_filling.sh) and reviewed fragment plans |
 | 8. 45S rDNA array construction | [Consensus repeat assembly, copy-number evaluation, and uniform Chr6 allocation](docs/08-rdna-assembly.md) | [08_rdna_assembly.sh](scripts/08_rdna_assembly.sh) |
 | 9. Genome quality assessment | [Assembly statistics, read support, completeness, QV, and switch errors](docs/09-genome-quality.md) | [09_genome_quality.sh](scripts/09_genome_quality.sh) |
+
+## Downstream analyses
+
+| Step | Documentation |
+| --- | --- |
+| 10. Graph pangenome construction | [Assembly curation, chromosome-set preparation, PGGB and ODGI](docs/10-pangenome-construction.md) |
+| 11. Variant calling and QC | [Tetraploid GVCF calling, joint genotyping and variant filters](docs/11-variant-calling-qc.md) |
+| 12. Dosage-resolved GWAS | [Complete chromosomes, association models and locus selection](docs/12-gwas.md) |
+| 13. Candidate gene prioritization | [Variant effects, candidate genes and functional follow-up](docs/13-candidate-prioritization.md) |
 
 ## System requirements
 
@@ -42,7 +51,8 @@ The 02.make_pseudo-contact_matrices.py script calculates pairwise Pearson correl
 ```
 python 02.make_pseudo-contact_matrices.py Demos/data2.txt Demos/data2.txt > out.txt
 ```
-The 03.filter_vcf.py script is used to process the variant calling VCF files of autotetraploids and calculate variant frequencies. The output file is used for subsequent variant filtering.
-```
-python 03.filter_vcf.py Demos/raw.vcf.gz
+The `03.filter_vcf.py` example reports site quality, depth and genotype counts for the bundled `chr7.1` VCF fragment. Pass the maximum missingness fraction as the second argument. See the [variant calling and QC guide](docs/11-variant-calling-qc.md) for the full-chromosome workflow.
+
+```bash
+python3 03.filter_vcf.py Demos/raw.vcf.gz 0.1 > demo.filtered.vcf
 ```
